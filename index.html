@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Поздравление</title>
+<style>
+  :root{
+    --bg1:#071428;
+    --bg2:#08182a;
+    --card:#081226cc;
+    --accent:#ffd86b;
+    --muted:#cfe6ff;
+    --glass: rgba(255,255,255,0.04);
+  }
+  html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Helvetica Neue", Arial; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
+  body{
+    background: radial-gradient(1200px 600px at 10% 10%, rgba(120,100,255,0.06), transparent 8%),
+                radial-gradient(1000px 500px at 90% 90%, rgba(0,200,255,0.03), transparent 8%),
+                linear-gradient(180deg,var(--bg1),var(--bg2));
+    color:#fff;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  /* Fullscreen confetti canvas */
+  canvas#confetti{ position:fixed; inset:0; width:100%; height:100%; z-index:2; pointer-events:none; }
+
+  /* Center card */
+  .wrap{ position:relative; z-index:3; display:flex; align-items:center; justify-content:center; padding:24px; width:100%; box-sizing:border-box; }
+  .card{
+    width:min(920px,94%);
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:18px;
+    padding:34px;
+    box-shadow: 0 12px 40px rgba(2,8,23,0.6);
+    border:1px solid var(--glass);
+    display:grid;
+    grid-template-columns: 1fr 380px;
+    gap:20px;
+    align-items:center;
+    min-height:320px;
+    overflow:hidden;
+  }
+
+  .left{
+    padding-right:12px;
+  }
+  .greeting{
+    font-size:34px;
+    font-weight:800;
+    line-height:1.02;
+    margin:0 0 8px 0;
+    letter-spacing:-0.5px;
+    color:var(--accent);
+    text-shadow:0 6px 26px rgba(255,200,90,0.06);
+  }
+  .name{
+    display:inline-block;
+    color:#fff;
+    background:linear-gradient(90deg,#fff0 0%, #fff2 50%);
+    padding:4px 10px;
+    border-radius:8px;
+    margin-left:8px;
+    font-size:30px;
+    font-weight:800;
+    color:#fff;
+  }
+
+  .lines{
+    margin-top:10px;
+  }
+  .line{
+    font-size:16px;
+    color:var(--muted);
+    margin:8px 0;
+    opacity:0;
+    transform:translateY(8px);
+    transition:opacity .45s ease, transform .45s cubic-bezier(.2,.9,.3,1);
+  }
+
+  .line.show{ opacity:1; transform:translateY(0); }
+
+  /* little badge/emoji column */
+  .right{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:12px;
+  }
+  .cake{
+    background:linear-gradient(180deg,#fff2 0%, #fff0 100%);
+    border-radius:14px;
+    width:160px;
+    height:160px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:48px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    border:1px solid rgba(255,255,255,0.03);
+  }
+  .sparkles{
+    display:flex;
+    gap:8px;
+  }
+  .spark{
+    font-size:20px;
+    opacity:0.95;
+    transform:translateY(0);
+  }
+
+  /* subtle animated undercard */
+  .footer-note{
+    margin-top:14px;
+    font-size:13px;
+    color:rgba(255,255,255,0.6);
+  }
+
+  /* small screens stack */
+  @media (max-width:840px){
+    .card{ grid-template-columns: 1fr; text-align:center; padding:22px; gap:12px; }
+    .left{ padding-right:0; }
+    .name{ display:block; margin-left:0; margin-top:6px; font-size:26px; }
+    .right{ flex-direction:row; justify-content:center; }
+  }
+
+  /* decorative floating orbs */
+  .orb{
+    position:absolute;
+    width:240px;height:240px;border-radius:50%;
+    filter:blur(40px); opacity:0.06; z-index:1;
+  }
+  .orb.a{ right:-60px; top:-60px; background:linear-gradient(90deg,#ffd86b,#ff7ab6); transform:rotate(12deg); }
+  .orb.b{ left:-40px; bottom:-40px; background:linear-gradient(90deg,#72f5d6,#6b8bff); transform:rotate(-10deg); }
+</style>
+</head>
+<body>
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<div class="wrap" role="main" aria-live="polite">
+  <div class="card" role="region" aria-label="Поздравление">
+    <div class="left">
+      <h1 class="greeting">С Днём Рождения, <span class="name" id="name-slot">Кунсулу</span>!</h1>
+      <div class="lines" id="lines">
+        <div class="line" id="l1">Пусть этот год станет коллекцией ярких побед и тёплых воспоминаний.</div>
+        <div class="line" id="l2">Желаю смеха, смелых планов и людей, которые вдохновляют каждый день.</div>
+        <div class="line" id="l3">Пусть энергия, здоровье и удача идут рядом с тобой на каждом шаге.</div>
+        <div class="line" id="l4">А самые смелые мечты сегодня начнут превращаться в планы — и в реальность.</div>
+      </div>
+      <div class="footer-note" aria-hidden="true">Нажми где угодно на экран, чтобы вызвать ещё всплесков конфетти ✨</div>
+    </div>
+
+    <div class="right" aria-hidden="true">
+      <div class="cake" id="cake-emoji">🎂</div>
+      <div class="sparkles">
+        <div class="spark">🎉</div>
+        <div class="spark">🥳</div>
+        <div class="spark">🌟</div>
+      </div>
+    </div>
+
+    <div class="orb a" aria-hidden="true"></div>
+    <div class="orb b" aria-hidden="true"></div>
+  </div>
+</div>
+
+<script>
+/* ========== Настройки ========== */
+const NAME = "Кунсулу";          // имя в заголовке (можешь поменять)
+const AUTO_BURSTS = 6;           // сколько автоматических всплесков конфетти при заходе
+const AUTO_INTERVAL = 650;       // ms — интервал между всплесками при старте
+const BURST_COUNT = 80;          // сколько частиц в одном всплеске
+/* ================================================== */
+
+/* ---------- Simple canvas confetti engine (lightweight) ---------- */
+(function(){
+  const canvas = document.getElementById('confetti');
+  const ctx = canvas.getContext('2d');
+  let W = canvas.width = innerWidth;
+  let H = canvas.height = innerHeight;
+  const particles = [];
+  const colors = ["#ff4d6d","#ff9a56","#ffd86b","#70f59c","#6b8bff","#ff7ab6","#5ce1e6","#ffd1a6"];
+
+  function rand(min,max){ return Math.random()*(max-min)+min; }
+
+  function resize(){
+    W = canvas.width = innerWidth;
+    H = canvas.height = innerHeight;
+  }
+  window.addEventListener('resize', resize);
+
+  function makeBurst(x,y,count){
+    for(let i=0;i<count;i++){
+      const angle = rand(0, Math.PI*2);
+      const speed = rand(2,8);
+      const size = Math.round(rand(6,14));
+      particles.push({
+        x,y,
+        vx: Math.cos(angle)*speed + rand(-1,1),
+        vy: Math.sin(angle)*speed + rand(-1,1) - 2.5,
+        size,
+        rot: rand(0,Math.PI*2),
+        drot: rand(-0.15,0.15),
+        color: colors[Math.floor(rand(0,colors.length))],
+        gravity: rand(0.03,0.18),
+        ttl: rand(1400,3800),
+        life:0,
+        wobble: rand(0,0.1)
+      });
+    }
+  }
+
+  function update(dt){
+    for(let i=particles.length-1;i>=0;i--){
+      const p = particles[i];
+      p.life += dt;
+      p.vy += p.gravity * (dt*0.06);
+      p.vx *= 0.998;
+      p.vy *= 0.998;
+      p.x += p.vx * (dt*0.06);
+      p.y += p.vy * (dt*0.06);
+      p.rot += p.drot * (dt*0.06);
+      p.wobble += 0.02;
+      if(p.y > H + 40 || p.life > p.ttl) particles.splice(i,1);
+    }
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    for(const p of particles){
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, 1 - p.life / p.ttl);
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot + Math.sin(p.wobble)*0.4);
+      // rounded rect as confetti piece
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size/2, -p.size/2, p.size, Math.round(p.size*1.6));
+      ctx.restore();
+    }
+  }
+
+  let last = 0;
+  function loop(ts){
+    if(!last) last = ts;
+    const dt = ts - last;
+    last = ts;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  // expose API
+  window._confettiBurst = makeBurst;
+})();
+
+/* ---------- Greeting text animation ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  // set name
+  const nameSlot = document.getElementById('name-slot');
+  if(nameSlot) nameSlot.textContent = NAME;
+
+  // reveal lines sequentially
+  const lines = Array.from(document.querySelectorAll('.line'));
+  lines.forEach((el,i)=>{
+    setTimeout(()=> el.classList.add('show'), 700 + i*520);
+  });
+
+  // automatic confetti bursts at entry
+  let bursts = 0;
+  const doAutoBurst = () => {
+    const x = innerWidth * (0.35 + Math.random()*0.3);
+    const y = innerHeight * 0.18;
+    window._confettiBurst(x,y,BURST_COUNT);
+    bursts++;
+    if(bursts < AUTO_BURSTS) setTimeout(doAutoBurst, AUTO_INTERVAL + Math.random()*220);
+  };
+  setTimeout(doAutoBurst, 250);
+
+  // on click or touch: burst from click position
+  function clickHandler(evt){
+    let x,y;
+    if(evt.touches && evt.touches[0]){ x = evt.touches[0].clientX; y = evt.touches[0].clientY; }
+    else { x = evt.clientX; y = evt.clientY; }
+    window._confettiBurst(x,y, Math.floor(BURST_COUNT * (0.7 + Math.random()*0.8)));
+  }
+  window.addEventListener('click', clickHandler);
+  window.addEventListener('touchstart', clickHandler, {passive:true});
+});
+</script>
+</body>
+</html>
